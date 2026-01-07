@@ -2,15 +2,29 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# 1. TEMA PERSONALIZADO (Azul e Estética Solicitada)
+# 1. TEMA PERSONALIZADO (Ajuste de visibilidade)
 st.set_page_config(page_title="História em Foco 2026", layout="wide", page_icon="🛡️")
 
 st.markdown("""
     <style>
-    .stApp { background-color: #E3F2FD; } /* Azul Claro */
-    [data-testid="stSidebar"] { background-color: #1565C0; color: white; } /* Azul Forte */
+    /* Fundo Azul Claro */
+    .stApp { background-color: #E3F2FD; } 
+    
+    /* Sidebar Azul Forte */
+    [data-testid="stSidebar"] { background-color: #1565C0; color: white; }
     [data-testid="stSidebar"] * { color: white !important; }
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; }
+    
+    /* CORREÇÃO DE CONTRASTE: Texto preto dentro dos campos de entrada */
+    input { color: #000000 !important; }
+    .stTextInput>div>div>input { color: #000000 !important; background-color: #FFFFFF !important; }
+    .stNumberInput>div>div>input { color: #000000 !important; background-color: #FFFFFF !important; }
+    
+    /* Estilo do Botão de Login */
+    div.stButton > button:first-child {
+        background-color: #0D47A1;
+        color: white;
+        border: 2px solid #ffffff;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -20,10 +34,11 @@ if 'autenticado' not in st.session_state:
 
 def login():
     st.sidebar.subheader("🔐 Acesso 2026")
-    usuario = st.sidebar.text_input("Usuário")
-    senha = st.sidebar.text_input("Senha", type="password")
-    if st.sidebar.button("Entrar"):
-        if usuario == "admin" and senha == "2026": # Senha mestra do Prof.
+    # Identificadores para os campos de texto
+    usuario = st.sidebar.text_input("Usuário", placeholder="Digite seu usuário")
+    senha = st.sidebar.text_input("Senha", type="password", placeholder="Digite sua senha")
+    if st.sidebar.button("ENTRAR"):
+        if usuario == "admin" and senha == "2026":
             st.session_state.autenticado = True
             st.rerun()
         else:
@@ -31,10 +46,10 @@ def login():
 
 if not st.session_state.autenticado:
     login()
-    st.info("👋 Bem-vindo! Por favor, identifique-se no menu lateral para acessar o Sistema de Crédito de Confiança.")
+    st.info("👋 **Bem-vindo, Professor!** Para gerenciar o Crédito de Confiança, use o painel lateral.")
     st.stop()
 
-# 3. CABEÇALHO (Com o novo nome da Escola e Disciplina)
+# 3. CABEÇALHO (Identidade Visual Solicitada)
 st.markdown(f"""
     # 🛡️ Sistema de Crédito de Confiança
     **Disciplina de História** | Prof. Luiz Alberto Pepino
@@ -64,12 +79,11 @@ with aba_regras:
 
 with aba_links:
     st.subheader("📚 Conteúdos Sugeridos")
-    st.info("Aqui você encontrará vídeos e leituras para reforçar o conteúdo das aulas.")
     st.write("👉 [Sugestão de Vídeo: Introdução à História](https://youtube.com)")
     st.write("👉 [Sugestão de Leitura: O Brasil no século XVIII](https://google.com)")
 
 with aba_painel:
-    # Base de dados fictícia (conectaremos ao Google Sheets no dia 20/01)
+    # Base de dados (conectaremos ao Google Sheets no dia 20/01)
     if 'df' not in st.session_state:
         st.session_state.df = pd.DataFrame({
             'Nome': ['Adria', 'Davy', 'Gustavo', 'Aluno Especial'],
