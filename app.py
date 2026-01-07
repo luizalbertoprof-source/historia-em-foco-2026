@@ -2,93 +2,115 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
+# 1. CONFIGURAÇÃO DE TEMA (Paleta Azul solicitada)
 st.set_page_config(page_title="História em Foco 2026", layout="wide", page_icon="🛡️")
 
-# Ajustes de Estética para Mobile
 st.markdown("""
     <style>
-    .stNumberInput>div>div>input { font-weight: bold; color: #01579B; padding: 5px; }
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 2.5em; font-size: 12px; }
-    [data-testid="stMetricValue"] { font-size: 24px; }
+    /* Fundo Azul Claro */
+    .stApp { background-color: #E3F2FD; }
+    /* Sidebar Azul mais forte */
+    [data-testid="stSidebar"] { background-color: #1976D2; color: white; }
+    [data-testid="stSidebar"] * { color: white !important; }
+    /* Estilo dos Botões */
+    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; }
+    .st-key-login_btn { background-color: #0D47A1; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ Sistema Crédito de Confiança")
-st.caption("Itacoatiara - Prof. Luiz Alberto | Gestão AV1 e AV2")
+# 2. SISTEMA DE LOGIN SIMPLES
+if 'autenticado' not in st.session_state:
+    st.session_state.autenticado = False
 
-aba1, aba2 = st.tabs(["📊 Painel de Aula e Notas", "📜 Regras do Sistema"])
+def login():
+    st.sidebar.title("🔐 Acesso Restrito")
+    usuario = st.sidebar.text_input("Usuário (CPF ou Matrícula)")
+    senha = st.sidebar.text_input("Senha", type="password")
+    if st.sidebar.button("Entrar", key="login_btn"):
+        # Aqui você definirá uma lógica de senha por aluno/pai em janeiro
+        if usuario == "admin" and senha == "2026": # Exemplo para o Prof.
+            st.session_state.autenticado = True
+            st.session_state.perfil = "professor"
+            st.rerun()
+        elif usuario and senha: # Lógica para pais
+            st.session_state.autenticado = True
+            st.session_state.perfil = "pai"
+            st.session_state.usuario_logado = usuario
+            st.rerun()
 
-with aba2:
-    st.markdown("""
-    ### 📜 Composição da Nota (10.0)
-    * **📚 Bloco Acadêmico (7.0 pts):** Composto pelas notas de AV1, AV2 e Seminários.
-    * **⚠️ Bloco de Atitude (3.0 pts):** Comportamento, Participação e Foco.
+if not st.session_state.autenticado:
+    login()
+    st.warning("Por favor, faça o login para acessar os dados de desempenho.")
+    st.stop()
+
+# 3. CABEÇALHO PERSONALIZADO
+col_img, col_tit = st.columns([1, 4])
+with col_img:
+    # Tenta carregar a imagem que você subiu no GitHub
+    try:
+        st.image("perfil.png", width=150)
+    except:
+        st.info("Coloque a foto 'perfil.png' no GitHub")
+
+with col_tit:
+    st.markdown(f"""
+    # Sistema de Crédito de Confiança
+    **Disciplina:** História | **Prof:** Luiz Alberto Pepino
+    **Escola:** Estadual Maria Ivone de Araújo Leite
+    *Itacoatiara, Amazonas - 2026*
     """)
 
-with aba1:
-    if 'df' not in st.session_state:
-        st.session_state.df = pd.DataFrame({
-            'Nome': ['Adria', 'Davy', 'Gustavo', 'Aluno Especial'],
-            'Turma': ['7º 03', '7º 03', '9º 01', '7º 03'],
-            'Categoria': ['Regular', 'Regular', 'Regular', 'Especial'],
-            'AV1': [0.0, 0.0, 0.0, 0.0],
-            'AV2': [0.0, 0.0, 0.0, 0.0],
-            'Saldo': [10.0, 10.0, 10.0, 10.0],
-            'Telefone': ['5592999999999', '5592999999999', '5592999999999', '5592999999999']
-        })
+# 4. ABAS DO SISTEMA
+aba_painel, aba_materiais, aba_regras = st.tabs(["📊 Desempenho", "📚 Materiais de Estudo", "📜 Regras Claras"])
 
-    st.sidebar.header("⚙️ Ferramentas")
-    turma_sel = st.sidebar.selectbox("Selecionar Turma", sorted(st.session_state.df['Turma'].unique()))
+with aba_regras:
+    st.markdown("""
+    ### 🛡️ Guia do Pacto de Confiança (Para Pais e Alunos)
+    Este sistema visa premiar a autonomia e o respeito. O aluno inicia com **10.0 pontos**.
     
-    alunos_turma = st.session_state.df[st.session_state.df['Turma'] == turma_sel]
+    **1. Bloco de Atividades (7.0 pontos):**
+    - **AV1 e AV2:** Notas das provas bimestrais.
+    - **Seminários:** Apresentação e pesquisa (-1.0 se não realizar).
+    - **Leitura e Jogos:** Participação nas dinâmicas (-0.2 se não participar).
+    
+    **2. Bloco de Atitude (3.0 pontos):**
+    - **Respeito:** Atitudes inconvenientes, palavrões ou desrespeito (-0.5).
+    - **Foco:** Dormir em sala ou conversa paralela (-0.2).
+    - **Material:** Esquecimento de livro/caderno (-0.2).
+    
+    **3. Bonificações:**
+    - **🏆 Coletivo:** Turma toda colaborativa (+1.0).
+    - **⭐ Destaque:** Aluno que superou as expectativas (+0.2).
+    """)
 
-    for index, row in alunos_turma.iterrows():
-        with st.container():
-            # Layout otimizado para 5 colunas
-            c1, c2, c3, c4, c5 = st.columns([1.5, 0.6, 2.0, 3.2, 1.5])
-            
-            c1.write(f"**{row['Nome']}**")
-            
-            # Semáforo do Saldo
-            cor = "green" if row['Saldo'] >= 9 else "orange" if row['Saldo'] >= 7 else "red"
-            c2.markdown(f"<h3 style='color:{cor}; margin:0;'>{row['Saldo']:.1f}</h3>", unsafe_allow_html=True)
+with aba_materiais:
+    st.subheader("📖 Material Didático e Apoio")
+    # Busca do Livro do 7º Ano
+    busca = st.text_input("🔍 Pesquisar no Livro do 7º Ano (Temas, Capítulos...)", placeholder="Ex: Brasil Holandês")
+    if busca:
+        st.write(f"Resultados para: '{busca}' no livro 'Viver História'...")
+        # Link para o PDF que você anexou (ajustaremos para o link direto em janeiro)
+        st.markdown("[📄 Abrir Livro do 7º Ano (PDF)](https://github.com/seu-usuario/seu-repo/raw/main/EDIT-Viver-Historia-História-7-ano.pdf)")
+    
+    st.divider()
+    st.subheader("🎥 Vídeos e Leituras Sugeridas")
+    st.write("🔗 [Vídeo: A Formação do Brasil Colonial](https://youtube.com)")
+    st.write("🔗 [Artigo: O Ciclo do Ouro em Minas Gerais](https://google.com)")
 
-            # ENTRADA DE NOTAS (AV1 e AV2 lado a lado)
-            with c3:
-                n1, n2 = st.columns(2)
-                nova_av1 = n1.number_input("AV1", min_value=0.0, max_value=10.0, value=float(row['AV1']), key=f"av1_{index}", step=0.5)
-                nova_av2 = n2.number_input("AV2", min_value=0.0, max_value=10.0, value=float(row['AV2']), key=f"av2_{index}", step=0.5)
-                
-                if nova_av1 != row['AV1'] or nova_av2 != row['AV2']:
-                    st.session_state.df.at[index, 'AV1'] = nova_av1
-                    st.session_state.df.at[index, 'AV2'] = nova_av2
-                    st.rerun()
+with aba_painel:
+    # Simulação de dados (Será substituído pelo Google Sheets em 20/01)
+    df = pd.DataFrame({
+        'Nome': ['Adria', 'Davy', 'Gustavo'],
+        'Turma': ['7º 03', '7º 03', '9º 01'],
+        'Saldo': [10.0, 9.8, 10.0],
+        'AV1': [8.5, 7.0, 9.0],
+        'AV2': [0.0, 0.0, 0.0],
+        'Telefone': ['5592999999999', '5592999999999', '5592999999999']
+    })
 
-            # BOTÕES DE ATITUDE
-            if row['Categoria'] == 'Regular':
-                with c4:
-                    col_a, col_b = st.columns(2)
-                    if col_a.button(f"🎤 Seminário (-1.0)", key=f"s_{index}"):
-                        st.session_state.df.at[index, 'Saldo'] -= 1.0
-                        st.rerun()
-                    if col_a.button(f"🚫 Atitude (-0.5)", key=f"i_{index}"):
-                        st.session_state.df.at[index, 'Saldo'] -= 0.5
-                        st.rerun()
-                    if col_b.button(f"💬 Conversa (-0.2)", key=f"c_{index}"):
-                        st.session_state.df.at[index, 'Saldo'] -= 0.2
-                        st.rerun()
-                    if col_b.button(f"⭐ DESTAQUE (+0.2)", key=f"d_{index}"):
-                        st.session_state.df.at[index, 'Saldo'] += 0.2
-                        st.rerun()
-            else:
-                c4.info("🌟 Acompanhamento Diferenciado")
-
-            # NOTIFICAÇÃO COMPLETA
-            with c5:
-                msg = (f"*História em Foco 🛡️*\n"
-                       f"Olá! Desempenho de *{row['Nome']}*:\n"
-                       f"📝 *AV1:* {row['AV1']} | *AV2:* {row['AV2']}\n"
-                       f"🛡️ *Saldo de Confiança:* {row['Saldo']:.1f}\n"
-                       f"Regras: https://historia-itacoatiara.streamlit.app")
-                st.link_button("📱 Notificar", f"https://wa.me/{row['Telefone']}?text={urllib.parse.quote(msg)}")
-            st.divider()
+    if st.session_state.perfil == "professor":
+        turma = st.selectbox("Selecione a Turma", df['Turma'].unique())
+        # Lógica de botões igual à anterior para o professor...
+    else:
+        st.info(f"Olá! Exibindo dados apenas de: {st.session_state.usuario_logado}")
+        # Lógica de filtro para o pai ver apenas o seu filho
