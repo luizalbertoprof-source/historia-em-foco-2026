@@ -4,29 +4,27 @@ import urllib.parse
 
 st.set_page_config(page_title="História em Foco 2026", layout="wide", page_icon="🛡️")
 
-# Estilos Visuais
+# Ajustes de Estética para Mobile
 st.markdown("""
     <style>
-    .stNumberInput>div>div>input { font-weight: bold; color: #01579B; }
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 2.2em; }
+    .stNumberInput>div>div>input { font-weight: bold; color: #01579B; padding: 5px; }
+    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 2.5em; font-size: 12px; }
+    [data-testid="stMetricValue"] { font-size: 24px; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🛡️ Sistema Crédito de Confiança")
-st.caption("Itacoatiara - Prof. Luiz Alberto | Gestão Acadêmica Integrada")
+st.caption("Itacoatiara - Prof. Luiz Alberto | Gestão AV1 e AV2")
 
 aba1, aba2 = st.tabs(["📊 Painel de Aula e Notas", "📜 Regras do Sistema"])
 
-# --- REGRAS ---
 with aba2:
     st.markdown("""
-    ### 📜 Composição da Nota Final
-    O saldo de **10.0** pontos é composto por:
-    1. **Atividades Acadêmicas (7.0 pts):** Notas de AV1, AV2, Seminários e Jogos.
-    2. **Engajamento e Atitude (3.0 pts):** Comportamento, Participação e Destaque.
+    ### 📜 Composição da Nota (10.0)
+    * **📚 Bloco Acadêmico (7.0 pts):** Composto pelas notas de AV1, AV2 e Seminários.
+    * **⚠️ Bloco de Atitude (3.0 pts):** Comportamento, Participação e Foco.
     """)
 
-# --- PAINEL PRINCIPAL ---
 with aba1:
     if 'df' not in st.session_state:
         st.session_state.df = pd.DataFrame({
@@ -46,8 +44,8 @@ with aba1:
 
     for index, row in alunos_turma.iterrows():
         with st.container():
-            # Layout expandido para caber as notas
-            c1, c2, c3, c4, c5 = st.columns([1.5, 0.7, 1.5, 3.0, 1.5])
+            # Layout otimizado para 5 colunas
+            c1, c2, c3, c4, c5 = st.columns([1.5, 0.6, 2.0, 3.2, 1.5])
             
             c1.write(f"**{row['Nome']}**")
             
@@ -55,14 +53,18 @@ with aba1:
             cor = "green" if row['Saldo'] >= 9 else "orange" if row['Saldo'] >= 7 else "red"
             c2.markdown(f"<h3 style='color:{cor}; margin:0;'>{row['Saldo']:.1f}</h3>", unsafe_allow_html=True)
 
-            # NOVOS CAMPOS: Entrada de Notas
+            # ENTRADA DE NOTAS (AV1 e AV2 lado a lado)
             with c3:
-                nova_av1 = st.number_input("AV1", min_value=0.0, max_value=10.0, value=float(row['AV1']), key=f"av1_{index}", step=0.5)
-                if nova_av1 != row['AV1']:
+                n1, n2 = st.columns(2)
+                nova_av1 = n1.number_input("AV1", min_value=0.0, max_value=10.0, value=float(row['AV1']), key=f"av1_{index}", step=0.5)
+                nova_av2 = n2.number_input("AV2", min_value=0.0, max_value=10.0, value=float(row['AV2']), key=f"av2_{index}", step=0.5)
+                
+                if nova_av1 != row['AV1'] or nova_av2 != row['AV2']:
                     st.session_state.df.at[index, 'AV1'] = nova_av1
+                    st.session_state.df.at[index, 'AV2'] = nova_av2
                     st.rerun()
 
-            # BOTÕES DE ATITUDE E ACADÊMICO
+            # BOTÕES DE ATITUDE
             if row['Categoria'] == 'Regular':
                 with c4:
                     col_a, col_b = st.columns(2)
@@ -81,12 +83,12 @@ with aba1:
             else:
                 c4.info("🌟 Acompanhamento Diferenciado")
 
-            # NOTIFICAÇÃO COM NOTA DA AV1
+            # NOTIFICAÇÃO COMPLETA
             with c5:
                 msg = (f"*História em Foco 🛡️*\n"
-                       f"Olá! Informo o desempenho de *{row['Nome']}*:\n"
-                       f"📝 *Nota AV1:* {row['AV1']}\n"
-                       f"🛡️ *Crédito Atual:* {row['Saldo']:.1f}\n"
+                       f"Olá! Desempenho de *{row['Nome']}*:\n"
+                       f"📝 *AV1:* {row['AV1']} | *AV2:* {row['AV2']}\n"
+                       f"🛡️ *Saldo de Confiança:* {row['Saldo']:.1f}\n"
                        f"Regras: https://historia-itacoatiara.streamlit.app")
                 st.link_button("📱 Notificar", f"https://wa.me/{row['Telefone']}?text={urllib.parse.quote(msg)}")
             st.divider()
