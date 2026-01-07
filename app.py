@@ -4,93 +4,89 @@ import urllib.parse
 
 st.set_page_config(page_title="História em Foco 2026", layout="wide", page_icon="🛡️")
 
-# Estilos Visuais Avançados
+# Estilos Visuais
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; }
-    .st-key-bonus-col { background-color: #FFD700 !important; color: black !important; }
-    .st-key-destaque { background-color: #FFF9C4 !important; color: #5D4037 !important; border: 1px solid #FBC02D !important; }
+    .stNumberInput>div>div>input { font-weight: bold; color: #01579B; }
+    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; height: 2.2em; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🛡️ Sistema Crédito de Confiança")
-st.caption("Itacoatiara - Prof. Luiz Alberto | Versão Final 2026")
+st.caption("Itacoatiara - Prof. Luiz Alberto | Gestão Acadêmica Integrada")
 
-aba1, aba2 = st.tabs(["📊 Painel de Aula", "📜 Regras e Transparência"])
+aba1, aba2 = st.tabs(["📊 Painel de Aula e Notas", "📜 Regras do Sistema"])
 
-# --- ABA DE REGRAS ---
+# --- REGRAS ---
 with aba2:
     st.markdown("""
-    ### 📜 Guia para Pais e Alunos
-    O aprendizado de História depende de compromisso. O aluno inicia com **10.0 pontos**.
-    
-    #### 🎓 Bloco Acadêmico (7.0 pts):
-    * **🎤 Seminário/Apresentação:** Atividade de fala e pesquisa. (-1.0 se ausente)
-    * **🎮 Jogos/Rodadas de Conversa:** Participação ativa. (-0.2 se não participar)
-    
-    #### ⚠️ Bloco de Atitude (3.0 pts):
-    * **🚫 Atitude Inconveniente:** Desrespeito, palavrões ou bagunça grave. (-0.5)
-    * **💬 Conversa/Sono/Material:** Falta de foco ou organização. (-0.2)
-    * **⭐ Destaque Positivo:** Participação excepcional. (+0.2)
+    ### 📜 Composição da Nota Final
+    O saldo de **10.0** pontos é composto por:
+    1. **Atividades Acadêmicas (7.0 pts):** Notas de AV1, AV2, Seminários e Jogos.
+    2. **Engajamento e Atitude (3.0 pts):** Comportamento, Participação e Destaque.
     """)
 
-# --- ABA PRINCIPAL ---
+# --- PAINEL PRINCIPAL ---
 with aba1:
-    # Simulando a base que virá do Google Sheets no dia 20/01
     if 'df' not in st.session_state:
         st.session_state.df = pd.DataFrame({
-            'Nome': ['Adria', 'Davy', 'Gustavo', 'Aluno Especial (Exemplo)'],
+            'Nome': ['Adria', 'Davy', 'Gustavo', 'Aluno Especial'],
             'Turma': ['7º 03', '7º 03', '9º 01', '7º 03'],
             'Categoria': ['Regular', 'Regular', 'Regular', 'Especial'],
+            'AV1': [0.0, 0.0, 0.0, 0.0],
+            'AV2': [0.0, 0.0, 0.0, 0.0],
             'Saldo': [10.0, 10.0, 10.0, 10.0],
             'Telefone': ['5592999999999', '5592999999999', '5592999999999', '5592999999999']
         })
 
-    st.sidebar.header("⚙️ Controle")
-    turma_sel = st.sidebar.selectbox("Turma Atual", sorted(st.session_state.df['Turma'].unique()))
+    st.sidebar.header("⚙️ Ferramentas")
+    turma_sel = st.sidebar.selectbox("Selecionar Turma", sorted(st.session_state.df['Turma'].unique()))
     
-    if st.sidebar.button("🏆 BÔNUS COLETIVO (+1.0)", key="bonus-col"):
-        st.session_state.df.loc[st.session_state.df['Turma'] == turma_sel, 'Saldo'] += 1.0
-        st.rerun()
-
     alunos_turma = st.session_state.df[st.session_state.df['Turma'] == turma_sel]
 
     for index, row in alunos_turma.iterrows():
         with st.container():
-            c1, c2, c3, c4 = st.columns([1.5, 0.8, 4.2, 1.5])
+            # Layout expandido para caber as notas
+            c1, c2, c3, c4, c5 = st.columns([1.5, 0.7, 1.5, 3.0, 1.5])
             
             c1.write(f"**{row['Nome']}**")
+            
+            # Semáforo do Saldo
             cor = "green" if row['Saldo'] >= 9 else "orange" if row['Saldo'] >= 7 else "red"
             c2.markdown(f"<h3 style='color:{cor}; margin:0;'>{row['Saldo']:.1f}</h3>", unsafe_allow_html=True)
 
-            if row['Categoria'] == 'Regular':
-                with c3:
-                    ac, cp = st.columns(2)
-                    with ac: # ACADÊMICO
-                        if st.button(f"🎤 Seminário (-1.0)", key=f"s_{index}"):
-                            st.session_state.df.at[index, 'Saldo'] -= 1.0
-                            st.rerun()
-                        if st.button(f"🎮 Jogo/Rodada (-0.2)", key=f"j_{index}"):
-                            st.session_state.df.at[index, 'Saldo'] -= 0.2
-                            st.rerun()
-                    with cp: # COMPORTAMENTO
-                        if st.button(f"🚫 Inconveniente (-0.5)", key=f"i_{index}"):
-                            st.session_state.df.at[index, 'Saldo'] -= 0.5
-                            st.rerun()
-                        # Botão de Destaque Individual
-                        if st.button(f"⭐ DESTAQUE (+0.2)", key=f"destaque_{index}"):
-                            st.session_state.df.at[index, 'Saldo'] += 0.2
-                            st.rerun()
-            else:
-                with c3:
-                    obs = st.text_input("Obs. do Cuidador/Professor:", key=f"obs_{index}", placeholder="Como foi o dia dele?")
-                    st.caption("🌟 Aluno com acompanhamento diferenciado")
+            # NOVOS CAMPOS: Entrada de Notas
+            with c3:
+                nova_av1 = st.number_input("AV1", min_value=0.0, max_value=10.0, value=float(row['AV1']), key=f"av1_{index}", step=0.5)
+                if nova_av1 != row['AV1']:
+                    st.session_state.df.at[index, 'AV1'] = nova_av1
+                    st.rerun()
 
-            with c4:
-                msg_base = f"*História em Foco 🛡️*\nOlá! O saldo de *{row['Nome']}* é *{row['Saldo']:.1f}*."
-                if row['Categoria'] == 'Especial' and obs:
-                    msg_base += f"\n*Observação:* {obs}"
-                
-                msg = f"{msg_base}\nVeja as regras: https://historia-itacoatiara.streamlit.app"
+            # BOTÕES DE ATITUDE E ACADÊMICO
+            if row['Categoria'] == 'Regular':
+                with c4:
+                    col_a, col_b = st.columns(2)
+                    if col_a.button(f"🎤 Seminário (-1.0)", key=f"s_{index}"):
+                        st.session_state.df.at[index, 'Saldo'] -= 1.0
+                        st.rerun()
+                    if col_a.button(f"🚫 Atitude (-0.5)", key=f"i_{index}"):
+                        st.session_state.df.at[index, 'Saldo'] -= 0.5
+                        st.rerun()
+                    if col_b.button(f"💬 Conversa (-0.2)", key=f"c_{index}"):
+                        st.session_state.df.at[index, 'Saldo'] -= 0.2
+                        st.rerun()
+                    if col_b.button(f"⭐ DESTAQUE (+0.2)", key=f"d_{index}"):
+                        st.session_state.df.at[index, 'Saldo'] += 0.2
+                        st.rerun()
+            else:
+                c4.info("🌟 Acompanhamento Diferenciado")
+
+            # NOTIFICAÇÃO COM NOTA DA AV1
+            with c5:
+                msg = (f"*História em Foco 🛡️*\n"
+                       f"Olá! Informo o desempenho de *{row['Nome']}*:\n"
+                       f"📝 *Nota AV1:* {row['AV1']}\n"
+                       f"🛡️ *Crédito Atual:* {row['Saldo']:.1f}\n"
+                       f"Regras: https://historia-itacoatiara.streamlit.app")
                 st.link_button("📱 Notificar", f"https://wa.me/{row['Telefone']}?text={urllib.parse.quote(msg)}")
             st.divider()
