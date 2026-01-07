@@ -2,115 +2,113 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# 1. CONFIGURAÇÃO DE TEMA (Paleta Azul solicitada)
+# 1. TEMA PERSONALIZADO (Azul e Estética Solicitada)
 st.set_page_config(page_title="História em Foco 2026", layout="wide", page_icon="🛡️")
 
 st.markdown("""
     <style>
-    /* Fundo Azul Claro */
-    .stApp { background-color: #E3F2FD; }
-    /* Sidebar Azul mais forte */
-    [data-testid="stSidebar"] { background-color: #1976D2; color: white; }
+    .stApp { background-color: #E3F2FD; } /* Azul Claro */
+    [data-testid="stSidebar"] { background-color: #1565C0; color: white; } /* Azul Forte */
     [data-testid="stSidebar"] * { color: white !important; }
-    /* Estilo dos Botões */
     .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; }
-    .st-key-login_btn { background-color: #0D47A1; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. SISTEMA DE LOGIN SIMPLES
+# 2. SISTEMA DE LOGIN
 if 'autenticado' not in st.session_state:
     st.session_state.autenticado = False
 
 def login():
-    st.sidebar.title("🔐 Acesso Restrito")
-    usuario = st.sidebar.text_input("Usuário (CPF ou Matrícula)")
+    st.sidebar.subheader("🔐 Acesso 2026")
+    usuario = st.sidebar.text_input("Usuário")
     senha = st.sidebar.text_input("Senha", type="password")
-    if st.sidebar.button("Entrar", key="login_btn"):
-        # Aqui você definirá uma lógica de senha por aluno/pai em janeiro
-        if usuario == "admin" and senha == "2026": # Exemplo para o Prof.
+    if st.sidebar.button("Entrar"):
+        if usuario == "admin" and senha == "2026": # Senha mestra do Prof.
             st.session_state.autenticado = True
-            st.session_state.perfil = "professor"
             st.rerun()
-        elif usuario and senha: # Lógica para pais
-            st.session_state.autenticado = True
-            st.session_state.perfil = "pai"
-            st.session_state.usuario_logado = usuario
-            st.rerun()
+        else:
+            st.sidebar.error("Usuário ou senha incorretos")
 
 if not st.session_state.autenticado:
     login()
-    st.warning("Por favor, faça o login para acessar os dados de desempenho.")
+    st.info("👋 Bem-vindo! Por favor, identifique-se no menu lateral para acessar o Sistema de Crédito de Confiança.")
     st.stop()
 
-# 3. CABEÇALHO PERSONALIZADO
-col_img, col_tit = st.columns([1, 4])
-with col_img:
-    # Tenta carregar a imagem que você subiu no GitHub
-    try:
-        st.image("perfil.png", width=150)
-    except:
-        st.info("Coloque a foto 'perfil.png' no GitHub")
-
-with col_tit:
-    st.markdown(f"""
-    # Sistema de Crédito de Confiança
-    **Disciplina:** História | **Prof:** Luiz Alberto Pepino
-    **Escola:** Estadual Maria Ivone de Araújo Leite
-    *Itacoatiara, Amazonas - 2026*
+# 3. CABEÇALHO (Com o novo nome da Escola e Disciplina)
+st.markdown(f"""
+    # 🛡️ Sistema de Crédito de Confiança
+    **Disciplina de História** | Prof. Luiz Alberto Pepino
+    **Escola Estadual Maria Ivone de Araújo Leite**
+    *Itacoatiara, Amazonas | 2026*
     """)
+st.divider()
 
-# 4. ABAS DO SISTEMA
-aba_painel, aba_materiais, aba_regras = st.tabs(["📊 Desempenho", "📚 Materiais de Estudo", "📜 Regras Claras"])
+# 4. ABAS DE NAVEGAÇÃO
+aba_painel, aba_links, aba_regras = st.tabs(["📊 Diário e Notas", "🔗 Links de Estudo", "📜 Regras do Pacto"])
 
 with aba_regras:
     st.markdown("""
-    ### 🛡️ Guia do Pacto de Confiança (Para Pais e Alunos)
-    Este sistema visa premiar a autonomia e o respeito. O aluno inicia com **10.0 pontos**.
+    ### 📜 Entenda o Crédito de Confiança (Saldo 10.0)
+    O saldo avalia o compromisso integral do aluno em sala.
     
-    **1. Bloco de Atividades (7.0 pontos):**
-    - **AV1 e AV2:** Notas das provas bimestrais.
-    - **Seminários:** Apresentação e pesquisa (-1.0 se não realizar).
-    - **Leitura e Jogos:** Participação nas dinâmicas (-0.2 se não participar).
+    **🔴 Reduções:**
+    * **Material/Sono/Conversa:** -0,2
+    * **Tarefa não realizada:** -0,5
+    * **Atitude Inconveniente (Palavrão/Bagunça):** -0,5
+    * **Seminário não realizado:** -1,0
     
-    **2. Bloco de Atitude (3.0 pontos):**
-    - **Respeito:** Atitudes inconvenientes, palavrões ou desrespeito (-0.5).
-    - **Foco:** Dormir em sala ou conversa paralela (-0.2).
-    - **Material:** Esquecimento de livro/caderno (-0.2).
-    
-    **3. Bonificações:**
-    - **🏆 Coletivo:** Turma toda colaborativa (+1.0).
-    - **⭐ Destaque:** Aluno que superou as expectativas (+0.2).
+    **🟢 Bonificações:**
+    * **🏆 Bônus Coletivo:** +1,0 (Turma nota 10)
+    * **⭐ Destaque Individual:** +0,2
     """)
 
-with aba_materiais:
-    st.subheader("📖 Material Didático e Apoio")
-    # Busca do Livro do 7º Ano
-    busca = st.text_input("🔍 Pesquisar no Livro do 7º Ano (Temas, Capítulos...)", placeholder="Ex: Brasil Holandês")
-    if busca:
-        st.write(f"Resultados para: '{busca}' no livro 'Viver História'...")
-        # Link para o PDF que você anexou (ajustaremos para o link direto em janeiro)
-        st.markdown("[📄 Abrir Livro do 7º Ano (PDF)](https://github.com/seu-usuario/seu-repo/raw/main/EDIT-Viver-Historia-História-7-ano.pdf)")
-    
-    st.divider()
-    st.subheader("🎥 Vídeos e Leituras Sugeridas")
-    st.write("🔗 [Vídeo: A Formação do Brasil Colonial](https://youtube.com)")
-    st.write("🔗 [Artigo: O Ciclo do Ouro em Minas Gerais](https://google.com)")
+with aba_links:
+    st.subheader("📚 Conteúdos Sugeridos")
+    st.info("Aqui você encontrará vídeos e leituras para reforçar o conteúdo das aulas.")
+    st.write("👉 [Sugestão de Vídeo: Introdução à História](https://youtube.com)")
+    st.write("👉 [Sugestão de Leitura: O Brasil no século XVIII](https://google.com)")
 
 with aba_painel:
-    # Simulação de dados (Será substituído pelo Google Sheets em 20/01)
-    df = pd.DataFrame({
-        'Nome': ['Adria', 'Davy', 'Gustavo'],
-        'Turma': ['7º 03', '7º 03', '9º 01'],
-        'Saldo': [10.0, 9.8, 10.0],
-        'AV1': [8.5, 7.0, 9.0],
-        'AV2': [0.0, 0.0, 0.0],
-        'Telefone': ['5592999999999', '5592999999999', '5592999999999']
-    })
+    # Base de dados fictícia (conectaremos ao Google Sheets no dia 20/01)
+    if 'df' not in st.session_state:
+        st.session_state.df = pd.DataFrame({
+            'Nome': ['Adria', 'Davy', 'Gustavo', 'Aluno Especial'],
+            'Turma': ['7º 03', '7º 03', '9º 01', '7º 03'],
+            'Categoria': ['Regular', 'Regular', 'Regular', 'Especial'],
+            'AV1': [0.0, 0.0, 0.0, 0.0],
+            'AV2': [0.0, 0.0, 0.0, 0.0],
+            'Saldo': [10.0, 10.0, 10.0, 10.0],
+            'Telefone': ['5592999999999', '5592999999999', '5592999999999', '5592999999999']
+        })
 
-    if st.session_state.perfil == "professor":
-        turma = st.selectbox("Selecione a Turma", df['Turma'].unique())
-        # Lógica de botões igual à anterior para o professor...
-    else:
-        st.info(f"Olá! Exibindo dados apenas de: {st.session_state.usuario_logado}")
-        # Lógica de filtro para o pai ver apenas o seu filho
+    st.sidebar.success("✅ Modo Professor Ativo")
+    turma_sel = st.sidebar.selectbox("Escolha a Turma", sorted(st.session_state.df['Turma'].unique()))
+    
+    if st.sidebar.button("🏆 BÔNUS TURMA (+1.0)"):
+        st.session_state.df.loc[st.session_state.df['Turma'] == turma_sel, 'Saldo'] += 1.0
+        st.rerun()
+
+    alunos_turma = st.session_state.df[st.session_state.df['Turma'] == turma_sel]
+
+    for index, row in alunos_turma.iterrows():
+        with st.container():
+            c1, c2, c3, c4 = st.columns([1.5, 0.7, 4.0, 1.5])
+            c1.write(f"**{row['Nome']}**")
+            cor = "green" if row['Saldo'] >= 9 else "orange" if row['Saldo'] >= 7 else "red"
+            c2.markdown(f"<h3 style='color:{cor}; margin:0;'>{row['Saldo']:.1f}</h3>", unsafe_allow_html=True)
+
+            with c3:
+                n1, n2, bt1, bt2 = st.columns([1,1,2,2])
+                n1.number_input("AV1", 0.0, 10.0, float(row['AV1']), key=f"a1_{index}")
+                n2.number_input("AV2", 0.0, 10.0, float(row['AV2']), key=f"a2_{index}")
+                if bt1.button("📕 -0.2", key=f"m_{index}"):
+                    st.session_state.df.at[index, 'Saldo'] -= 0.2
+                    st.rerun()
+                if bt2.button("🚫 -0.5", key=f"i_{index}"):
+                    st.session_state.df.at[index, 'Saldo'] -= 0.5
+                    st.rerun()
+            
+            with c4:
+                msg = f"*História em Foco 🛡️*\nOlá! O saldo de *{row['Nome']}* é *{row['Saldo']:.1f}*."
+                st.link_button("📱 Notificar", f"https://wa.me/{row['Telefone']}?text={urllib.parse.quote(msg)}")
+            st.divider()
