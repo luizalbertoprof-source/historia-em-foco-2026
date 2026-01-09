@@ -3,14 +3,17 @@ import pandas as pd
 import urllib.parse
 
 # 1. CONFIGURAÇÕES ESTÉTICAS E TÍTULO
-st.set_page_config(page_title="História Itacoatiara 2026", layout="wide", page_icon="🛡️")
+st.set_page_config(page_title="História MMXXVI - Prof. Luiz", layout="wide", page_icon="🛡️")
 
+# Estilos customizados para um visual acadêmico e moderno
 st.markdown("""
     <style>
-    .stApp { background-color: #E3F2FD !important; } 
-    [data-testid="stSidebar"] { background-color: #1565C0 !important; }
-    .stButton>button { width: 100%; border-radius: 8px; font-weight: bold; }
-    .card { background-color: white; padding: 15px; border-radius: 10px; border-left: 5px solid #0D47A1; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+    .stApp { background-color: #F0F4F8 !important; } 
+    [data-testid="stSidebar"] { background-color: #1A237E !important; }
+    .stButton>button { width: 100%; border-radius: 20px; font-weight: bold; transition: 0.3s; }
+    .stButton>button:hover { background-color: #FFD600 !important; color: #1A237E !important; }
+    .header-box { background-color: #1A237E; color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+    .disclaimer { font-size: 0.85rem; color: #546E7A; font-style: italic; border-top: 1px solid #CFD8DC; margin-top: 20px; padding-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -23,106 +26,97 @@ def carregar_dados(aba_nome):
     df.columns = [str(c).strip().upper() for c in df.columns]
     return df
 
-# 3. LOGIN
-if 'autenticado' not in st.session_state: st.session_state.autenticado = False
-
+# 3. BARRA LATERAL (SIDEBAR)
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3429/3429404.png", width=100) # Ícone de História
-    st.title("🛡️ Painel do Professor")
+    st.markdown("<h1 style='color: #FFD600; text-align: center;'>🏛️ MMXXVI</h1>", unsafe_allow_html=True)
+    st.write("---")
+    if 'autenticado' not in st.session_state: st.session_state.autenticado = False
+    
     if not st.session_state.autenticado:
+        st.subheader("🛡️ Acesso Restrito")
         u = st.text_input("Usuário")
         s = st.text_input("Senha", type="password")
-        if st.button("Acessar Sistema"):
+        if st.button("ENTRAR"):
             if u == "admin" and s == "2026":
                 st.session_state.autenticado = True
                 st.rerun()
-            else: st.error("Dados incorretos")
+            else: st.error("Acesso Negado")
         st.stop()
+    
+    st.success("Professor Conectado")
+    turmas = ["8º01", "8º02", "8º03", "9º01", "9º02", "8º04", "8º05", "9º03", "9º04", "9º05"]
+    turma_sel = st.selectbox("📂 Selecione a Turma", turmas)
+    st.write("---")
+    st.caption("Desenvolvido para apoio pedagógico.")
 
-# 4. INTERFACE PRINCIPAL (PÓS-LOGIN)
-turmas = ["8º01", "8º02", "8º03", "9º01", "9º02", "8º04", "8º05", "9º03", "9º04", "9º05"]
-turma_sel = st.sidebar.selectbox("📅 Selecione a Turma", turmas)
+# 4. CABEÇALHO OFICIAL
+st.markdown(f"""
+    <div class="header-box">
+        <h1 style='margin:0;'>SISTEMA DE CRÉDITO DE CONFIANÇA</h1>
+        <h3 style='margin:0; color: #FFD600;'>PROF. LUIZ ALBERTO PEPINO</h3>
+        <p style='margin:5px 0 0 0;'>Escola Estadual Maria Ivone de Araújo Leite</p>
+        <p style='margin:0;'><b>Disciplina: História | Ano MMXXVI</b></p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# ABAS DE NAVEGAÇÃO
-tab_diario, tab_livros, tab_regras = st.tabs(["📊 Diário e Créditos", "📚 Livros Didáticos", "📜 Regras do Pacto"])
+# 5. CONTEÚDO PRINCIPAL
+tab_diario, tab_livros, tab_regras = st.tabs(["📊 Desempenho", "📖 Material Didático", "📜 Termos e Regras"])
 
-# --- ABA 1: DIÁRIO E CRÉDITOS ---
 with tab_diario:
     try:
         df = carregar_dados(turma_sel)
-        st.subheader(f"Lista de Alunos - {turma_sel}")
-        
         for index, row in df.iterrows():
-            nome = row['NOME']
-            saldo = float(row['SALDO'])
-            cor = "green" if saldo >= 9 else "orange" if saldo >= 7 else "red"
-            
-            with st.container():
-                # Layout: Nome/Notas | Saldo | Ações | Zap
-                c1, c2, c3, c4 = st.columns([2.5, 1, 4, 1.5])
+            with st.expander(f"👤 {row['NOME']}", expanded=False):
+                c1, c2, c3 = st.columns([1, 1, 1])
                 
-                with c1:
-                    st.markdown(f"**{nome}**")
-                    st.caption(f"AV1: {row['AV1']} | AV2: {row['AV2']}")
+                # Saldo
+                val_saldo = float(row['SALDO'])
+                cor = "green" if val_saldo >= 9 else "orange" if val_saldo >= 7 else "red"
+                c1.metric("Saldo de Confiança", f"{val_saldo:.1f} pts")
                 
-                c2.markdown(f"<h2 style='color:{cor}; margin:0;'>{saldo:.1f}</h2>", unsafe_allow_html=True)
+                # Notas
+                c2.write(f"**AV1:** {row['AV1']} | **AV2:** {row['AV2']}")
                 
+                # Ações
                 with c3:
-                    # Botões de Ocorrências Específicas
-                    b1, b2, b3, b4 = st.columns(4)
-                    # Nota: Como ainda não ativamos a escrita automática para evitar perda de dados teste, 
-                    # os botões aqui geram a mensagem para o Zap com o motivo.
-                    if b1.button("📕 -0.2", key=f"mat_{index}", help="Material/Sono"):
-                        st.session_state[f"msg_{index}"] = "esquecimento de material ou desatenção em sala"
-                    if b2.button("📝 -0.5", key=f"tar_{index}", help="Tarefa"):
-                        st.session_state[f"msg_{index}"] = "não realização da tarefa de casa/classe"
-                    if b3.button("🚫 -0.5", key=f"ati_{index}", help="Atitude"):
-                        st.session_state[f"msg_{index}"] = "atitude inconveniente ou indisciplina"
-                    if b4.button("⭐ +0.2", key=f"des_{index}", help="Destaque"):
-                        st.session_state[f"msg_{index}"] = "participação exemplar e destaque positivo"
-
-                with c4:
-                    motivo = st.session_state.get(f"msg_{index}", "acompanhamento de rotina")
-                    texto_zap = (f"*História em Foco (M. Ivone)* 🛡️\n\n"
-                                 f"Olá! Informo o saldo de confiança de *{nome}*: *{saldo:.1f} pts*.\n"
-                                 f"Status: {motivo}.\n"
+                    motivo = st.selectbox("Ocorrência:", 
+                        ["Acompanhamento de rotina", "Material/Sono", "Tarefa não feita", "Indisciplina", "Destaque Positivo"], 
+                        key=f"sel_{index}")
+                    
+                    texto_zap = (f"*História MMXXVI* 🛡️\n\n"
+                                 f"Olá! Informo o saldo de *{row['NOME']}*: *{val_saldo:.1f} pts*.\n"
+                                 f"Registro: {motivo}.\n"
                                  f"Notas: AV1: {row['AV1']} | AV2: {row['AV2']}\n\n"
-                                 f"Obrigado pela parceria!")
-                    link_whatsapp = f"https://wa.me/{str(row['TELEFONE']).split('.')[0]}?text={urllib.parse.quote(texto_zap)}"
-                    st.link_button("📱 Notificar", link_whatsapp)
-                st.markdown("---")
+                                 f"Prof. Luiz Alberto Pepino")
+                    
+                    st.link_button("📱 Enviar para Responsável", 
+                                   f"https://wa.me/{str(row['TELEFONE']).split('.')[0]}?text={urllib.parse.quote(texto_zap)}")
 
     except Exception as e:
-        st.error(f"Erro ao carregar turma. Verifique a aba '{turma_sel}' na planilha.")
+        st.error(f"Erro ao carregar turma {turma_sel}.")
 
-# --- ABA 2: LIVROS DIDÁTICOS ---
 with tab_livros:
-    st.subheader("📖 Biblioteca Digital de História")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info("**1º Bimestre**")
-        st.link_button("📄 Abrir PDF (5MB)", "https://raw.githubusercontent.com/LUIZALBERTOPEPINO/historia-em-foco-2026/main/livro_8_9_bim1.pdf")
-        st.info("**2º Bimestre**")
-        st.button("🔒 Disponível em breve", disabled=True, key="b2")
-    with col2:
-        st.info("**3º Bimestre**")
-        st.button("🔒 Disponível em breve", disabled=True, key="b3")
-        st.info("**4º Bimestre**")
-        st.button("🔒 Disponível em breve", disabled=True, key="b4")
+    st.subheader("📚 Livros Didáticos de História")
+    st.link_button("📘 1º Bimestre (8º e 9º Anos)", "https://raw.githubusercontent.com/LUIZALBERTOPEPINO/historia-em-foco-2026/main/livro_8_9_bim1.pdf")
 
-# --- ABA 3: REGRAS DO PACTO ---
 with tab_regras:
-    st.markdown(f"""
-    ### 📜 O Pacto da Confiança - Prof. Luiz Alberto
-    Para garantir a transparência com os pais e alunos das turmas de **8ºs e 9ºs anos**, 
-    utilizamos o sistema de crédito comportamental:
+    st.markdown("""
+    ### 📜 Diretrizes do Sistema
+    Este app baseia-se no **Crédito de Confiança**, onde o aluno inicia com 10.0 pontos e gere seu comportamento.
     
-    * **Saldo Inicial:** 10.0 pontos (Crédito de Confiança).
-    * **Perda de Material ou Dormir em aula:** -0,2 pts.
-    * **Tarefa de casa/classe não realizada:** -0,5 pts.
-    * **Atitude inconveniente / Indisciplina:** -0,5 pts.
-    * **Não realização de Seminários/Trabalhos:** -1,0 pts.
-    * **⭐ Destaque Positivo / Participação:** +0,2 pts.
-    
-    *As notas de AV1 e AV2 são somadas ao desempenho atitudinal para compor a média bimestral.*
+    **Regras de Crédito/Débito:**
+    * 📕 Material/Desatenção: -0.2
+    * 📝 Tarefa não realizada: -0.5
+    * 🚫 Indisciplina: -0.5
+    * ⭐ Destaque Positivo: +0.2
     """)
+    
+    # AVISO LEGAL (DISCLAIMER) solicitado
+    st.markdown(f"""
+    <div class="disclaimer">
+        ⚠️ <b>Informação Importante:</b> Este aplicativo é uma ferramenta suplementar de gestão pedagógica do Prof. Luiz Alberto Pepino. 
+        <b>Não substitui os documentos oficiais</b> (boletins e históricos escolares) emitidos pela secretaria da 
+        Escola Estadual Maria Ivone de Araújo Leite. Seu propósito é exclusivamente facilitar o acompanhamento em tempo real 
+        do desempenho e comportamento por parte dos pais ou responsáveis.
+    </div>
+    """, unsafe_allow_html=True)
