@@ -2,79 +2,70 @@ import streamlit as st
 import pandas as pd
 import urllib.parse
 
-# Configurações de exibição
-st.set_page_config(page_title="Gestão História MMXXVI", layout="wide")
+# 1. IDENTIDADE VISUAL MMXXVI
+st.set_page_config(page_title="História Itacoatiara 2026", layout="wide", page_icon="🛡️")
 
-# Estilo focado em produtividade para o professor
 st.markdown("""
     <style>
-    .stApp { background-color: #E3F2FD !important; }
-    .status-card { background-color: white; padding: 10px; border-radius: 5px; border-left: 5px solid #1A237E; }
-    .nota-final { font-size: 1.2rem; font-weight: bold; color: #1A237E; }
+    .stApp { background-color: #E3F2FD !important; } 
+    [data-testid="stSidebar"] { background-color: #1A237E !important; }
+    [data-testid="stSidebar"] .stMarkdown p { color: white !important; }
+    .header-box { background-color: #1A237E; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
+# 2. CONEXÃO DIRETA
 SHEET_ID = "1HFRKm-NY5jvlx6W_pV8AA1fmNq8wOwng5su4V4U3DLU"
 
 def carregar_dados(aba_nome):
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={urllib.parse.quote(aba_nome.strip())}"
-    df = pd.read_csv(url)
-    df.columns = [str(c).strip().upper() for c in df.columns]
-    return df
+    return pd.read_csv(url)
 
-# Cabeçalho simplificado para uso do professor
-st.title("🛡️ Painel de Gestão: História MMXXVI")
-st.caption(f"Prof. Luiz Alberto Pepino | Escola Maria Ivone")
+# 3. CABEÇALHO PERSONALIZADO
+st.markdown(f"""
+    <div class="header-box">
+        <h2 style='margin:0;'>SISTEMA DE CRÉDITO DE CONFIANÇA</h2>
+        <p style='margin:0;'>PROF. LUIZ ALBERTO PEPINO - MMXXVI</p>
+        <p style='font-size: 0.8rem; margin:0;'>Escola Estadual Maria Ivone de Araújo Leite</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Barra Lateral
+# 4. BARRA LATERAL
 turmas = ["8º01", "8º02", "8º03", "9º01", "9º02", "8º04", "8º05", "9º03", "9º04", "9º05"]
-turma_sel = st.sidebar.selectbox("Escolha a Turma", turmas)
+turma_sel = st.sidebar.selectbox("📅 Selecione a Turma", turmas)
+st.sidebar.write("---")
+st.sidebar.caption("Disciplina: História")
 
+# 5. LISTAGEM DE ALUNOS
 try:
     df = carregar_dados(turma_sel)
-    
-    # Métrica da Turma
-    media_confianca = df['SALDO'].mean()
-    st.metric(f"Média de Confiança: {turma_sel}", f"{media_confianca:.2f}")
+    # Padroniza colunas para evitar erros
+    df.columns = [str(c).strip().upper() for c in df.columns]
 
     for index, row in df.iterrows():
-        # CÁLCULO DA NOTA FINAL PROPORCIONAL
-        # Aqui o Saldo de Confiança entra como bônus ou ônus na média das AVs
-        av1 = float(row['AV1'])
-        av2 = float(row['AV2'])
-        saldo = float(row['SALDO'])
-        
-        media_provisoria = (av1 + av2) / 2
-        # O ajuste: Se saldo é 10, ajuste é 0. Se saldo é 9.5, ajuste é -0.5.
-        ajuste = saldo - 10.0
-        nota_final = media_provisoria + ajuste
-        
-        # Garante que a nota não seja menor que zero nem maior que 10
-        nota_final = max(0.0, min(10.0, nota_final))
-
         with st.container():
-            c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
+            col_nome, col_notas, col_saldo, col_zap = st.columns([2, 1.5, 1, 1])
             
-            with c1:
+            with col_nome:
                 st.write(f"👤 **{row['NOME']}**")
-                st.caption(f"Telefone: {row['TELEFONE']}")
-
-            with c2:
-                st.write(f"AV1: {av1} | AV2: {av2}")
-                st.markdown(f"Saldo: **{saldo:.1f}**")
-
-            with c3:
-                cor_final = "blue" if nota_final >= 6 else "red"
-                st.markdown(f"Nota Final Projetada:")
-                st.markdown(f"<span class='nota-final' style='color:{cor_final}'>{nota_final:.2f}</span>", unsafe_allow_html=True)
-
-            with c4:
-                # O Zap continua sendo sua ferramenta de comunicação com o pai
-                motivo = "Acompanhamento de rotina" # Aqui você pode expandir se quiser
-                texto_zap = f"Olá! Saldo de {row['NOME']}: {saldo:.1f}. Nota Final Projetada: {nota_final:.2f}."
-                st.link_button("📱 Zap", f"https://wa.me/{str(row['TELEFONE']).split('.')[0]}?text={urllib.parse.quote(texto_zap)}")
+            
+            with col_notas:
+                st.write(f"AV1: {row['AV1']} | AV2: {row['AV2']}")
+            
+            with col_saldo:
+                saldo = float(row['SALDO'])
+                cor = "green" if saldo >= 9 else "orange" if saldo >= 7 else "red"
+                st.markdown(f"<b style='color:{cor}; font-size:1.2rem;'>{saldo:.1f}</b>", unsafe_allow_html=True)
+            
+            with col_zap:
+                tel = str(row['TELEFONE']).split('.')[0]
+                msg = f"*História MMXXVI* 🛡️\nOlá! Saldo de {row['NOME']}: {saldo:.1f}. Notas AV1: {row['AV1']} | AV2: {row['AV2']}."
+                st.link_button("📱 Zap", f"https://wa.me/{tel}?text={urllib.parse.quote(msg)}")
             
             st.divider()
 
 except Exception as e:
-    st.error("Erro ao carregar os dados. Verifique a planilha.")
+    st.error("Aguardando carregamento da planilha...")
+
+# 6. AVISO LEGAL
+st.caption("⚠️ Este app serve para acompanhamento pedagógico e não substitui documentos oficiais.")
